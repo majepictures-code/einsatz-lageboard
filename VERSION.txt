@@ -1,0 +1,13 @@
+Einsatz-Lageboard V2
+Version: 2.0.0
+Build: 2026-07-14
+
+Kompletter Neuaufbau mit:
+- neuer mobiler Navigation
+- neuer Trupp-Schnellerfassung
+- MR-, BK- und BR-Auftragsauswahl
+- Geschossauswahl und Freitextfeldern
+- Atemschutzüberwachung nach FwDV 7
+- Einsatzabschluss
+- TXT-Bericht
+- lokaler Speicherung und Offlinebetrieb

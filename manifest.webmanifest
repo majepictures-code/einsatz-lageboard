@@ -1,16 +1,17 @@
 {
-  "name": "Einsatz-Lageboard",
-  "short_name": "Lageboard",
-  "description": "Lokales, offlinefähiges Einsatz-Lageboard für Feuerwehr-Führungskräfte.",
-  "start_url": "./",
+  "id": "einsatz-lageboard-v2",
+  "name": "Einsatz-Lageboard V2",
+  "short_name": "Lageboard V2",
+  "description": "Mobiles Einsatz-Lageboard mit Atemschutzüberwachung nach FwDV 7.",
+  "start_url": "./?v=2.0.0",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0b0d10",
-  "theme_color": "#b91c1c",
+  "background_color": "#090b0f",
+  "theme_color": "#991b1b",
   "lang": "de-DE",
   "icons": [
     {
-      "src": "./icons/icon.svg",
+      "src": "./assets/app-icon.svg?v=2.0.0",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

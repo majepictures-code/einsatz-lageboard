@@ -3,106 +3,303 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#b91c1c">
-  <meta name="description" content="Lokales, offlinefähiges Einsatz-Lageboard für Feuerwehr-Führungskräfte.">
-  <title>Einsatz-Lageboard</title>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css">
+  <meta name="theme-color" content="#991b1b">
+  <meta name="description" content="Mobiles Einsatz-Lageboard mit Atemschutzüberwachung nach FwDV 7.">
+  <title>Einsatz-Lageboard 2.0</title>
+  <link rel="manifest" href="./manifest.webmanifest?v=2.0.0">
+  <link rel="icon" href="./assets/app-icon.svg?v=2.0.0" type="image/svg+xml">
+  <link rel="stylesheet" href="./ui-v2.css?v=2.0.0">
 </head>
 <body>
-  <header class="app-header">
-    <div>
-      <p class="eyebrow">Feuerwehr · lokal auf diesem Gerät</p>
-      <h1>Einsatz-Lageboard</h1>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">EL</div>
+      <div>
+        <div class="brand-line">
+          <h1>Einsatz-Lageboard</h1>
+          <span class="version">V2.0</span>
+        </div>
+        <p>Lokale Einsatzdokumentation</p>
+      </div>
     </div>
-    <div class="connection" id="connection" aria-live="polite">Online</div>
+    <div class="topbar-right">
+      <time id="live-clock">--:--:--</time>
+      <span class="network-badge" id="network-badge">Online</span>
+    </div>
   </header>
 
-  <main>
-    <section class="card incident-card" aria-labelledby="incident-heading">
-      <div class="section-heading">
-        <div>
-          <p class="section-kicker">Einsatz</p>
-          <h2 id="incident-heading">Grunddaten</h2>
+  <div id="alert-stack" class="alert-stack" aria-live="assertive"></div>
+
+  <div class="app-shell">
+    <nav class="navigation" aria-label="Hauptnavigation">
+      <button class="nav-button active" type="button" data-view="overview">
+        <span class="nav-icon" aria-hidden="true">⌂</span>
+        <span>Übersicht</span>
+      </button>
+      <button class="nav-button" type="button" data-view="teams">
+        <span class="nav-icon" aria-hidden="true">👥</span>
+        <span>Trupps</span>
+        <span class="nav-count" id="nav-team-count">0</span>
+      </button>
+      <button class="nav-button" type="button" data-view="timeline">
+        <span class="nav-icon" aria-hidden="true">≡</span>
+        <span>Chronik</span>
+        <span class="nav-count" id="nav-log-count">0</span>
+      </button>
+    </nav>
+
+    <main class="workspace">
+      <section class="view active" id="view-overview" data-view-panel="overview">
+        <article class="incident-panel">
+          <div class="incident-status-row">
+            <div>
+              <span class="overline">Aktueller Einsatz</span>
+              <div class="status-title-row">
+                <h2 id="incident-title">Einsatz vorbereiten</h2>
+                <span class="incident-badge ready" id="incident-badge">Bereit</span>
+              </div>
+            </div>
+            <div class="incident-timer" id="incident-timer">00:00:00</div>
+          </div>
+
+          <div class="incident-fields">
+            <label>
+              Einsatznummer
+              <input id="incident-number" autocomplete="off" placeholder="z. B. 2026-0142">
+            </label>
+            <label>
+              Stichwort
+              <input id="incident-keyword" autocomplete="off" placeholder="z. B. B3Y">
+            </label>
+            <label class="field-wide">
+              Einsatzstelle
+              <input id="incident-location" autocomplete="off" placeholder="Straße, Objekt oder Einsatzabschnitt">
+            </label>
+          </div>
+
+          <div class="incident-footer">
+            <p id="incident-time-info">Noch nicht gestartet</p>
+            <button class="action-button start" id="incident-action" type="button">Einsatz starten</button>
+          </div>
+        </article>
+
+        <div class="metric-grid" aria-label="Einsatzübersicht">
+          <article class="metric">
+            <span class="metric-value" id="metric-teams">0</span>
+            <span class="metric-label">Trupps gesamt</span>
+          </article>
+          <article class="metric">
+            <span class="metric-value green" id="metric-active">0</span>
+            <span class="metric-label">Im Einsatz</span>
+          </article>
+          <article class="metric">
+            <span class="metric-value amber" id="metric-pa">0</span>
+            <span class="metric-label">Aktiv unter PA</span>
+          </article>
+          <article class="metric">
+            <span class="metric-value red" id="metric-alerts">0</span>
+            <span class="metric-label">Offene Kontrollen</span>
+          </article>
         </div>
-        <div class="clock" id="clock">--:--:--</div>
-      </div>
 
-      <div class="form-grid">
-        <label>
-          Einsatznummer
-          <input id="incident-number" type="text" autocomplete="off" placeholder="z. B. 2026-0142">
-        </label>
-        <label>
-          Stichwort
-          <input id="incident-keyword" type="text" autocomplete="off" placeholder="z. B. B3Y">
-        </label>
-        <label class="wide">
-          Einsatzort
-          <input id="incident-location" type="text" autocomplete="off" placeholder="Straße oder Abschnitt">
-        </label>
-      </div>
+        <section class="section-block" id="pa-section">
+          <div class="section-header">
+            <div>
+              <span class="overline">FwDV 7</span>
+              <h2>Atemschutzüberwachung</h2>
+            </div>
+            <button class="text-button" type="button" data-go-view="teams">Trupp verwalten</button>
+          </div>
+          <div id="pa-board" class="pa-board"></div>
+          <div id="pa-empty" class="empty-card">
+            <span class="empty-icon" aria-hidden="true">◷</span>
+            <h3>Kein Trupp unter PA</h3>
+            <p>Lege einen Trupp an und starte dort die Atemschutzüberwachung.</p>
+            <button class="secondary-button" type="button" data-go-view="teams">Zu den Trupps</button>
+          </div>
+        </section>
+      </section>
 
-      <div class="incident-actions">
-        <button class="button primary" id="start-incident" type="button">Einsatz starten</button>
-        <p id="incident-runtime" class="runtime">Noch nicht gestartet</p>
-      </div>
-    </section>
-
-    <section class="stats" aria-label="Übersicht">
-      <article><strong id="team-count">0</strong><span>Trupps</span></article>
-      <article><strong id="active-count">0</strong><span>im Einsatz</span></article>
-      <article><strong id="pa-count">0</strong><span>unter PA</span></article>
-    </section>
-
-    <section class="card" aria-labelledby="teams-heading">
-      <div class="section-heading">
-        <div>
-          <p class="section-kicker">Kräfte</p>
-          <h2 id="teams-heading">Trupps und Aufträge</h2>
+      <section class="view" id="view-teams" data-view-panel="teams" hidden>
+        <div class="page-header">
+          <div>
+            <span class="overline">Schnellerfassung</span>
+            <h2>Trupps und Aufträge</h2>
+            <p>Trupp auswählen, Auftrag festlegen und direkt einsetzen.</p>
+          </div>
         </div>
-      </div>
 
-      <form id="team-form" class="team-form">
-        <label>
-          Trupp
-          <input name="name" required autocomplete="off" placeholder="Angriffstrupp HLF 1">
-        </label>
-        <label>
-          Auftrag
-          <input name="task" required autocomplete="off" placeholder="Menschenrettung 1. OG">
-        </label>
-        <button class="button primary" type="submit">Trupp hinzufügen</button>
-      </form>
+        <article class="form-card">
+          <form id="team-form" class="quick-form">
+            <label>
+              Truppbezeichnung
+              <input name="teamName" required autocomplete="off" placeholder="z. B. Angriffstrupp HLF 1">
+            </label>
+            <label>
+              Auftrag
+              <select name="taskCode" required>
+                <option value="">Bitte auswählen</option>
+                <option value="MR">MR · Menschenrettung</option>
+                <option value="BK">BK · Brandbekämpfung</option>
+                <option value="BR">BR · Bereitstellung</option>
+                <option value="CUSTOM">Sonstiger Auftrag</option>
+              </select>
+            </label>
+            <label id="rescue-area-field" hidden>
+              Wo?
+              <select name="rescueArea">
+                <option value="">Bereich auswählen</option>
+                <option value="KG">KG</option>
+                <option value="EG">EG</option>
+                <option value="1OG">1. OG</option>
+                <option value="2OG">2. OG</option>
+                <option value="3OG">3. OG</option>
+                <option value="CUSTOM">Anderer Bereich</option>
+              </select>
+            </label>
+            <label id="custom-area-field" hidden>
+              Bereich frei eingeben
+              <input name="customArea" autocomplete="off" placeholder="z. B. Dachgeschoss">
+            </label>
+            <label id="custom-task-field" hidden>
+              Auftrag frei eingeben
+              <input name="customTask" autocomplete="off" placeholder="z. B. Riegelstellung">
+            </label>
+            <button class="action-button add" type="submit">Trupp hinzufügen</button>
+          </form>
+        </article>
 
-      <div id="team-list" class="team-list" aria-live="polite"></div>
-      <p id="team-empty" class="empty-state">Noch keine Trupps angelegt.</p>
-    </section>
-
-    <section class="card" aria-labelledby="log-heading">
-      <div class="section-heading">
-        <div>
-          <p class="section-kicker">Dokumentation</p>
-          <h2 id="log-heading">Einsatzchronik</h2>
+        <div class="team-toolbar">
+          <strong id="team-list-title">0 Trupps</strong>
+          <select id="team-filter" aria-label="Trupps filtern">
+            <option value="all">Alle Status</option>
+            <option value="Bereit">Bereit</option>
+            <option value="Im Einsatz">Im Einsatz</option>
+            <option value="Rückmeldung">Rückmeldung</option>
+            <option value="Beendet">Beendet</option>
+          </select>
         </div>
+        <div id="team-list" class="team-list"></div>
+        <div id="team-empty" class="empty-card compact">
+          <h3>Noch keine Trupps erfasst</h3>
+          <p>Die erfassten Trupps erscheinen hier mit Status und Atemschutzaktionen.</p>
+        </div>
+      </section>
+
+      <section class="view" id="view-timeline" data-view-panel="timeline" hidden>
+        <div class="page-header split">
+          <div>
+            <span class="overline">Dokumentation</span>
+            <h2>Einsatzchronik</h2>
+            <p>Automatische Zeitstempel und eigene Rückmeldungen.</p>
+          </div>
+          <button class="action-button export" id="export-txt" type="button">TXT-Bericht exportieren</button>
+        </div>
+
+        <form id="note-form" class="note-form">
+          <input name="note" required autocomplete="off" placeholder="Rückmeldung oder Ereignis eintragen">
+          <button class="secondary-button" type="submit">Eintragen</button>
+        </form>
+
+        <ol id="timeline-list" class="timeline-list"></ol>
+        <div id="timeline-empty" class="empty-card compact">
+          <h3>Noch keine Einträge</h3>
+          <p>Beim Start des Einsatzes wird die Chronik automatisch geführt.</p>
+        </div>
+
+        <article class="danger-zone">
+          <div>
+            <strong>Neuen Einsatz vorbereiten</strong>
+            <p>Löscht alle lokal gespeicherten Daten dieses Einsatzes.</p>
+          </div>
+          <button class="danger-outline-button" id="reset-incident" type="button">Daten löschen</button>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="dialog" id="pa-start-dialog">
+    <form id="pa-start-form">
+      <div class="dialog-header">
+        <div>
+          <span class="overline">Atemschutzüberwachung</span>
+          <h2 id="pa-start-title">PA-Einsatz starten</h2>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog="pa-start-dialog" aria-label="Schließen">×</button>
       </div>
+      <input type="hidden" name="teamId">
+      <div class="dialog-grid">
+        <label>
+          Geräteträger 1
+          <input name="memberOne" required autocomplete="off" placeholder="Name oder Funkrufname">
+        </label>
+        <label>
+          Startdruck 1
+          <span class="unit-input"><input name="pressureOne" required type="number" min="0" max="400" inputmode="numeric" value="300"><span>bar</span></span>
+        </label>
+        <label>
+          Geräteträger 2
+          <input name="memberTwo" required autocomplete="off" placeholder="Name oder Funkrufname">
+        </label>
+        <label>
+          Startdruck 2
+          <span class="unit-input"><input name="pressureTwo" required type="number" min="0" max="400" inputmode="numeric" value="300"><span>bar</span></span>
+        </label>
+        <label>
+          Geräteart
+          <input name="deviceType" required autocomplete="off" value="Pressluftatmer">
+        </label>
+        <label>
+          Nennfülldruck
+          <span class="unit-input"><input name="nominalPressure" required type="number" min="100" max="400" inputmode="numeric" value="300"><span>bar</span></span>
+        </label>
+        <label class="field-wide">
+          Erwartete Einsatzzeit
+          <span class="unit-input"><input name="expectedMinutes" required type="number" min="3" max="180" inputmode="numeric" value="30"><span>Minuten</span></span>
+        </label>
+      </div>
+      <p class="safety-hint">Die Zeitüberwachung unterstützt die Druckkontrolle. Luftverbrauch, Rückweg und Einsatzlage bleiben maßgeblich.</p>
+      <div class="dialog-actions">
+        <button class="secondary-button" type="button" data-close-dialog="pa-start-dialog">Abbrechen</button>
+        <button class="action-button start-pa" type="submit">Luft angeschlossen · Timer starten</button>
+      </div>
+    </form>
+  </dialog>
 
-      <form id="log-form" class="log-form">
-        <input name="message" required autocomplete="off" aria-label="Neue Meldung" placeholder="Rückmeldung oder Ereignis eintragen">
-        <button class="button secondary" type="submit">Eintragen</button>
-      </form>
-      <ol id="log-list" class="log-list"></ol>
-      <p id="log-empty" class="empty-state">Die Chronik wird automatisch mitgeführt.</p>
-    </section>
-  </main>
+  <dialog class="dialog" id="pressure-dialog">
+    <form id="pressure-form">
+      <div class="dialog-header">
+        <div>
+          <span class="overline">Behälterdruck</span>
+          <h2 id="pressure-title">Kontrolle dokumentieren</h2>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog="pressure-dialog" aria-label="Schließen">×</button>
+      </div>
+      <input type="hidden" name="teamId">
+      <input type="hidden" name="runId">
+      <input type="hidden" name="controlType">
+      <div class="dialog-grid">
+        <label>
+          <span id="pressure-member-one">Geräteträger 1</span>
+          <span class="unit-input"><input name="pressureOne" required type="number" min="0" max="400" inputmode="numeric"><span>bar</span></span>
+        </label>
+        <label>
+          <span id="pressure-member-two">Geräteträger 2</span>
+          <span class="unit-input"><input name="pressureTwo" required type="number" min="0" max="400" inputmode="numeric"><span>bar</span></span>
+        </label>
+        <label class="field-wide">
+          Standort oder Rückmeldung
+          <input name="note" autocomplete="off" placeholder="z. B. 1. OG, Einsatzziel erreicht">
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <button class="secondary-button" type="button" data-close-dialog="pressure-dialog">Abbrechen</button>
+        <button class="action-button" type="submit">Kontrolle speichern</button>
+      </div>
+    </form>
+  </dialog>
 
-  <footer class="app-footer">
-    <button class="button secondary" id="export-data" type="button">Einsatz exportieren</button>
-    <button class="button danger" id="reset-data" type="button">Neuen Einsatz anlegen</button>
-  </footer>
-
-  <noscript>Für das Einsatz-Lageboard muss JavaScript aktiviert sein.</noscript>
-  <script src="./app.js" defer></script>
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+  <script src="./app-v2.js?v=2.0.0" defer></script>
 </body>
 </html>
