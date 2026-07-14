@@ -1,0 +1,19 @@
+{
+  "name": "Einsatz-Lageboard",
+  "short_name": "Lageboard",
+  "description": "Lokales, offlinefähiges Einsatz-Lageboard für Feuerwehr-Führungskräfte.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0d10",
+  "theme_color": "#b91c1c",
+  "lang": "de-DE",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
